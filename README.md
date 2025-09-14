@@ -43,7 +43,11 @@ https://openaipublic.azureedge.net/main/whisper/models/ed3a0b6b1c0edf879ad9b11b1
 ```
 малая (побольше) 460 Мб
 ```
-https://openaipublic.azureedge.net/main/whisper/models/f953ad0fd29cacd07d5a9eda5624af0f6bcf2258be67c92b79389873d91e0872/small.pt
+https://openaipublic.azureedge.net/main/whisper/models/9ecf779972d90ba49c06d968637d720dd632c55bbf19d441fb42bf17a411e794/small.pt
+```
+самая большая (лучшая для RU) 3 Гб
+```
+https://openaipublic.azureedge.net/main/whisper/models/e5b1a55b89c1367dacf97e3e19bfd829a01529dbfdeefa8caeb59b3f1b81dadb/large-v3.pt
 ```
 
 Положить ее в папку
@@ -53,3 +57,7 @@ C:\Users\ВашеИмя\.cache\whisper\
 model_path = r"C:\Users\ВашеИмя\.cache\whisper\base.pt"
 model = whisper.load_model(model_path)
 
+Названия моделей в коде (если уже загружена, то не будет загружать, а будет искать в стандартной папке)
+model = whisper.load_model("base")
+model = whisper.load_model("small")
+model = whisper.load_model("large")
