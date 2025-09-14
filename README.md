@@ -23,7 +23,7 @@ ffmpeg -version
 pip install openai-whisper
 ```
 
-### Для работы с аудиофайлами (очень важная зависимость)
+### Для работы с аудиофайлами в питоне (если будет надо)
 ```
 pip install ffmpeg-python
 ```
