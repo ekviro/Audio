@@ -1,3 +1,22 @@
+# В систему установить конвертор аудио
+скачать на сайте `ffmpeg-release-full.7z`
+```
+https://www.gyan.dev/ffmpeg/builds/
+```
+
+1. Скачайте этот ZIP-архив
+2. Распакуйте например в C:\ffmpeg
+3. Добавьте в PATH: C:\ffmpeg\bin
+Например:
+```
+setx PATH "%PATH%;C:\ffmpeg\bin"
+```
+4. Перезапустить терминал (cmd) и PyCharm и проверить установку в терминале
+```
+ffmpeg -version
+
+```
+
 # Это будет в зависимостях
 ### Основная библиотека Whisper от OpenAI
 ```
@@ -14,6 +33,8 @@ pip install ffmpeg-python
 ```
 pip install --upgrade --no-deps --force-reinstall git+https://github.com/openai/whisper.git
 ```
+
+
 ### без VPN
 Скачать модель вручную там, где есть vpn
 базовая 140 Мб
