@@ -5,10 +5,11 @@ from datetime import datetime
 import re  # для работы с регулярными выражениями
 import os
 
-audio_file = 'audio_files/20150925194925.MP3'
-target_word = 'новая заметка'
+target_word = 'новая заметка. ' # фраза для разбиения по пунктам
 
 audio_folder = "audio_files"
+timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+file_result = f"result_{timestamp}.txt"
 all_text = []
 audios = [
     f for f in os.listdir(audio_folder)
@@ -25,7 +26,7 @@ def regex_replace_any_case(text):
     def replace_func(match):
         # Эта функция вызывается для каждого найденного совпадения
         nonlocal counter  # Используем внешнюю переменную counter
-        result = f"\n{counter}. "  # Формируем замену: "1. ", "2. ", etc.
+        result = f"\n{counter}. "  # Формируем замену: "1 ", "2 ", etc.
         counter += 1  # Увеличиваем счетчик для следующего найденного слова
         return result  # Возвращаем текст для замены
 
@@ -44,7 +45,7 @@ def regex_replace_any_case(text):
 # Долгая проверка наличия GPU, включать только для проверки, назначать device вручную
 # import torch
 # device = "cuda" if torch.cuda.is_available() else "cpu"
-device = "cuda"  # или "cpu"
+device = "cpu"  # "cuda" или "cpu"
 current_time = datetime.now().strftime('%H:%M:%S')
 print(f'{current_time}: Назначили девайс = {device}. Загружаем модель...')
 model = whisper.load_model("large-v3").to(device)
@@ -68,6 +69,9 @@ for audio in audios:
     print(f'{current_time}: Начали разбиение на пункты по ключевому слову...')
     text = regex_replace_any_case(result["text"])
     all_text.append(text)
+    with open(file_result, 'a') as f:
+        f.write(f"\n{audio}\n")
+        f.write(f"{text}\n")
 end = time.time()
 
 print(f"\nВремя всей обработки: {end - start:.2f} секунд")
