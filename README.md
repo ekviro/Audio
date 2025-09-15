@@ -35,7 +35,9 @@ pip install --upgrade --no-deps --force-reinstall git+https://github.com/openai/
 ```
 
 # Проверить поддержку ускорения видеокарты CUDA
-написать в коде:
+Если выполнять расшифровку на cpu без видеокарты, то всегда будет предупреждение.
+Можно его игнорировать, а можно установить и использовать ускорение видеокарты (иногда оно может быть медленнее).
+Для проверки написать в коде:
 ```
 import torch
 print("PyTorch версия:", torch.__version__)
@@ -48,11 +50,11 @@ if torch.cuda.is_available():
 PyTorch версия: 2.8.0+cpu
 GPU доступен: False
 ```
-то удалить неправильный питорч
+то удалить неправильный питорч (который был установлен вместе с whisper)
 ```
 pip uninstall torch torchvision torchaudio
 ```
-Установить с кудой (тоже в venv) 3 Gb:
+Установить с кудой (тоже в venv) 3 Gb - deepseek нашел ссылку:
 ```
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 ```
