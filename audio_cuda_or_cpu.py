@@ -2,85 +2,52 @@
 import whisper
 import time
 from datetime import datetime
-import re  # для работы с регулярными выражениями
 import os
 
-target_word = 'новая заметка. ' # фраза для разбиения по пунктам
+def get_log_time():
+    return datetime.now().strftime('%H:%M:%S')
 
 audio_folder = "audio_files"
-timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-file_result = f"result_{timestamp}.txt"
-all_text = []
-audios = [
-    f for f in os.listdir(audio_folder)
-    if os.path.isfile(os.path.join(audio_folder, f))
-]
-print(f"В папке найдено файлов: {len(audios)}")
-for audio in audios:
-    print(f"- {audio}")
-
-def regex_replace_any_case(text):
-    """Разбиение текста на пункты по ключевому слову target_word."""
-    counter = 1  # Счетчик для нумерации пунктов
-
-    def replace_func(match):
-        # Эта функция вызывается для каждого найденного совпадения
-        nonlocal counter  # Используем внешнюю переменную counter
-        result = f"\n{counter}. "  # Формируем замену: "1 ", "2 ", etc.
-        counter += 1  # Увеличиваем счетчик для следующего найденного слова
-        return result  # Возвращаем текст для замены
-
-    # Создаем шаблон для поиска
-    pattern = r'\b' + re.escape(target_word) + r'\b'  # Экранируем спецсимволы в слове (слово только целиком)
-    # re.escape нужно, если в слове есть . * + ? и другие спецсимволы
-
-    # Заменяем все вхождения
-    return re.sub(
-        pattern,  # Что ищем
-        replace_func,  # На что заменяем (функция замены)
-        text,  # Исходный текст
-        flags=re.IGNORECASE  # Игнорируем регистр букв
-    )
-
+start = time.time()
 # Долгая проверка наличия GPU, включать только для проверки, назначать device вручную
 # import torch
 # device = "cuda" if torch.cuda.is_available() else "cpu"
 device = "cpu"  # "cuda" или "cpu"
-current_time = datetime.now().strftime('%H:%M:%S')
-print(f'{current_time}: Назначили девайс = {device}. Загружаем модель...')
-model = whisper.load_model("large-v3").to(device)
 
-# Расшифровка с ускорением GPU или без
-start = time.time()
+log_file = "log.txt"
+timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+text_result = f"text_result_{timestamp}.txt"
+audios = [
+    f for f in os.listdir(audio_folder)
+    if os.path.isfile(os.path.join(audio_folder, f))
+]
 
-for audio in audios:
-    current_time = datetime.now().strftime('%H:%M:%S')
-    print(f'{current_time}: Начали расшифровку файла {audio}...')
-    result = model.transcribe(
-        os.path.join(audio_folder, audio),
-        language="ru",
-        fp16=(device == "cuda")  # ускорение на GPU включится только для cuda
-    )
-    current_time = datetime.now().strftime('%H:%M:%S')
-    # Длительность аудио из результатов Whisper
-    duration = result["segments"][-1]["end"]  # конец последнего сегмента
-    print(f'{current_time}: Закончили расшифровку файла {audio} (длительностью {duration:.2f} секунд)')
-    current_time = datetime.now().strftime('%H:%M:%S')
-    print(f'{current_time}: Начали разбиение на пункты по ключевому слову...')
-    text = regex_replace_any_case(result["text"])
-    all_text.append(text)
-    with open(file_result, 'a') as f:
-        f.write(f"\n{audio}\n")
-        f.write(f"{text}\n")
-end = time.time()
+with open(log_file, 'a') as log:
+    print(f"\nВ папке найдено файлов: {len(audios)}")
+    log.write(f"В папке найдено файлов: {len(audios)}\n")
+    for audio in audios:
+        log.write(f"- {audio}\n")
 
-print(f"\nВремя всей обработки: {end - start:.2f} секунд")
-print("Результат:")
-for res in all_text:
-    print(res)
+    print(f'{get_log_time()}: Назначили девайс = {device}. Загружаем модель...')
+    log.write(f'{get_log_time()}: Назначили девайс = {device}. Загружаем модель...\n')
+    model = whisper.load_model("large-v3").to(device)
 
+    for n, audio in enumerate(audios, start=1):
+        print(f'{get_log_time()}: Начали расшифровку файла {audio} ({n})...')
+        log.write(f'{get_log_time()}: Начали расшифровку файла {audio} ({n})...\n')
+        result = model.transcribe(
+            os.path.join(audio_folder, audio),
+            language="ru",
+            fp16=(device == "cuda")  # ускорение на GPU включится только для cuda
+        )
+        # Длительность аудио из результатов Whisper
+        duration = result["segments"][-1]["end"]  # конец последнего сегмента
+        log.write(f'{get_log_time()}: Закончили расшифровку файла {audio} (длительностью {duration:.2f} секунд)\n')
+        log.write(f"Расшифровка по файлу {audio}: {result['text']}\n")
 
+        with open(text_result, 'a') as f:
+            f.write(f"{n}. {result['text']}\n")
+    end = time.time()
 
-
-
-
+    print(f"\nВремя всей обработки: {end - start:.2f} секунд")
+    log.write(f"\nВремя всей обработки: {end - start:.2f} секунд\n")
