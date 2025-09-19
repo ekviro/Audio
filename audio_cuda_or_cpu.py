@@ -7,7 +7,7 @@ import os
 def get_log_time():
     return datetime.now().strftime('%H:%M:%S')
 
-audio_folder = "audio_files"
+audio_folder = "RECORD"
 start = time.time()
 # Долгая проверка наличия GPU, включать только для проверки, назначать device вручную
 # import torch
