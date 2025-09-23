@@ -46,7 +46,7 @@ with open(log_file, 'a') as log:
         log.write(f"Расшифровка по файлу {audio}: {result['text']}\n")
 
         with open(text_result, 'a') as f:
-            f.write(f"{n}. {result['text']}\n")
+            f.write(f"{n}.{result['text']}\n")
     end = time.time()
 
     print(f"\nВремя всей обработки: {end - start:.2f} секунд")
