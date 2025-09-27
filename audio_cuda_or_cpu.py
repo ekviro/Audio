@@ -7,7 +7,8 @@ import os
 def get_log_time():
     return datetime.now().strftime('%H:%M:%S')
 
-audio_folder = "RECORD"
+audio_folder = "RECORD"  # папка с аудио
+
 start = time.time()
 # Долгая проверка наличия GPU, включать только для проверки, назначать device вручную
 # import torch
@@ -32,9 +33,9 @@ with open(log_file, 'a') as log:
     log.write(f'{get_log_time()}: Назначили девайс = {device}. Загружаем модель...\n')
     model = whisper.load_model("large-v3").to(device)
 
-    for n, audio in enumerate(audios, start=1):
-        print(f'{get_log_time()}: Начали расшифровку файла {audio} ({n})...')
-        log.write(f'{get_log_time()}: Начали расшифровку файла {audio} ({n})...\n')
+    for file_number, audio in enumerate(audios, start=1):
+        print(f'{get_log_time()}: Начали расшифровку файла {audio} ({file_number})...')
+        log.write(f'{get_log_time()}: Начали расшифровку файла {audio} ({file_number})...\n')
         result = model.transcribe(
             os.path.join(audio_folder, audio),
             language="ru",
@@ -46,7 +47,7 @@ with open(log_file, 'a') as log:
         log.write(f"Расшифровка по файлу {audio}: {result['text']}\n")
 
         with open(text_result, 'a') as f:
-            f.write(f"{n}.{result['text']}\n")
+            f.write(f"*** {result['text']}\n")  # f"РАЗДЕЛИТЕЛЬ ФАЙЛОВ{result['text']}\n"
     end = time.time()
 
     print(f"\nВремя всей обработки: {end - start:.2f} секунд")
