@@ -75,7 +75,7 @@ device = "cuda"  # или "cpu"
 model = whisper.load_model("large-v3").to(device)
 
 ### без VPN
-Скачать модель вручную там, где есть vpn
+Скачать модель вручную там, где есть vpn  
 базовая 140 Мб
 ```
 https://openaipublic.azureedge.net/main/whisper/models/ed3a0b6b1c0edf879ad9b11b1af5a0e6ab5db9205f891f668f8b0e6c6326e34e/base.pt
