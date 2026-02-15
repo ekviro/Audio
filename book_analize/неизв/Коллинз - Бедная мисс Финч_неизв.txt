@@ -1,0 +1,3 @@
+﻿herr: 61
+gott: 8
+alibi: 3

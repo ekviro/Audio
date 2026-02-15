@@ -1,0 +1,3 @@
+﻿may-pole: 6
+mauvais: 4
+silent: 3

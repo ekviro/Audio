@@ -1,0 +1,6 @@
+﻿ma&#238: 42
+monsieur: 17
+amselle: 6
+madame: 6
+adieu: 4
+dieu: 3
