@@ -13,7 +13,7 @@ start = time.time()
 # Долгая проверка наличия GPU, включать только для проверки, назначать device вручную
 # import torch
 # device = "cuda" if torch.cuda.is_available() else "cpu"
-device = "cpu"  # "cuda" или "cpu"
+device = "cuda"  # "cuda" или "cpu"
 
 log_file = "log.txt"
 timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
