@@ -100,3 +100,22 @@ model = whisper.load_model(model_path)
 model = whisper.load_model("base")
 model = whisper.load_model("small")
 large_model = whisper.load_model("large-v3")
+
+## Удаление старого и установка питорча для видяхи 5070
+```
+pip uninstall torch torchvision torchaudio -y
+```
+
+Скачает библиотеку размером около 3Гб
+```
+pip install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu128
+```
+
+Проверить, что новый питорч (В выводе должно быть что-то вроде 2.12.0.dev20260408+cu128 , дата может быть другой, но важно наличие +cu128 в конце)
+```
+pip show torch
+```
+
+При сняти  скриншотов будет ошибка, игнорировать:
+F:\My_Projects\Audio\venv\Lib\site-packages\whisper\timing.py:42: 
+UserWarning: Failed to launch Triton kernels, likely due to missing CUDA toolkit; falling back to a slower median kernel implementation...
