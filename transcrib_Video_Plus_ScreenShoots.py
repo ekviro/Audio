@@ -11,7 +11,7 @@ def get_log_time():
 
 
 # --- НАСТРОЙКИ ---
-video_folder = "RECORD"
+video_folder = "VIDEO"
 # -----------------
 
 VIDEO_EXTENSIONS = {'.mp4', '.avi', '.mov', '.mkv', '.webm', '.flv', '.wmv', '.m4v'}
