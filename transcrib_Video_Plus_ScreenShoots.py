@@ -12,7 +12,7 @@ def get_log_time():
 
 # --- НАСТРОЙКИ ---
 video_folder = "VIDEO"  # папка с видеофайлами
-INTERVAL = 10  # секунд между скриншотами
+INTERVAL = 5  # секунд между скриншотами
 # -----------------
 
 VIDEO_EXTENSIONS = {'.mp4', '.avi', '.mov', '.mkv', '.webm', '.flv', '.wmv', '.m4v'}
