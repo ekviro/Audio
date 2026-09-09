@@ -1,4 +1,4 @@
 openai-whisper
 ffmpeg-python
 opencv-python
-numpy
+numpy==2.2
