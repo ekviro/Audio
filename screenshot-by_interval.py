@@ -2,6 +2,8 @@ import ffmpeg
 import os
 from datetime import datetime
 
+# делает скрины из видео по времени
+
 # ========== НАСТРОЙКИ ==========
 INTERVAL = 3  # Кадр каждые N секунд
 INPUT_FOLDER = "VIDEO"  # Папка с исходными видео

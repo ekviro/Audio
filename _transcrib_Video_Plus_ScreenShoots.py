@@ -5,6 +5,7 @@ import os
 import subprocess
 import tempfile
 
+# Делает скрины с интервалом и распознанный текст вставляет перед ним в .md
 
 def get_log_time():
     return datetime.now().strftime('%H:%M:%S')
