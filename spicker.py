@@ -31,7 +31,6 @@ def create_output_file():
 
 
 def split_into_sentences(text):
-    """Разбить текст на предложения по . ! ?"""
     text = re.sub(r'\b(т\.д|т\.п|т\.е|и\.т\.д|и\.т\.п|г\.|рис\.|табл\.)\b',
                   lambda m: m.group(0).replace('.', '␀'), text)
     sentences = re.split(r'(?<=[.!?])\s+', text)
@@ -40,7 +39,6 @@ def split_into_sentences(text):
 
 
 def recognize_and_write(model, speech_buffer, output_file):
-    """Сохранить кусок в WAV, отправить в Whisper, записать результат"""
     if not speech_buffer:
         return
 
@@ -48,15 +46,12 @@ def recognize_and_write(model, speech_buffer, output_file):
     duration = len(audio_data) / SAMPLE_RATE
     print(f"  Длина куска: {duration:.1f} сек")
 
-    # Сохраняем во временный WAV
     temp_wav = "temp_chunk.wav"
     sf.write(temp_wav, audio_data, SAMPLE_RATE)
 
-    # Whisper обрабатывает как файл (режет с перекрытием)
     result = model.transcribe(temp_wav, language=LANGUAGE, fp16=False)
     raw_text = result["text"].strip()
 
-    # Удаляем временный файл
     os.remove(temp_wav)
 
     if raw_text:
@@ -90,51 +85,68 @@ def main():
             print(status, file=sys.stderr)
         audio_queue.put(indata.copy())
 
-    speech_buffer = []
-    silence_counter = 0
-    is_speaking = False
-
     print("\nСлушаю... Говорите.")
     print(f"(пауза {PAUSE_SECONDS} сек = конец куска)\n")
 
     stream = sd.InputStream(
-        samplerate=SAMPLE_RATE,
-        channels=CHANNELS,
-        dtype='int16',
-        blocksize=frame_size,
-        callback=audio_callback
+        samplerate=SAMPLE_RATE, channels=CHANNELS,
+        dtype='int16', blocksize=frame_size, callback=audio_callback
     )
 
     with stream:
         while True:
-            try:
-                frame = audio_queue.get(timeout=1.0)
-            except queue.Empty:
-                continue
+            # Очищаем очередь перед началом нового куска
+            while not audio_queue.empty():
+                try:
+                    audio_queue.get_nowait()
+                except queue.Empty:
+                    break
 
-            frame_bytes = frame.tobytes()
+            speech_buffer = []
+            silence_counter = 0
+            is_speaking = False
 
-            try:
-                is_speech = vad.is_speech(frame_bytes, SAMPLE_RATE)
-            except Exception:
-                is_speech = False
+            # Ждём и записываем кусок
+            while True:
+                try:
+                    frame = audio_queue.get(timeout=1.0)
+                except queue.Empty:
+                    continue
 
-            if is_speech:
-                speech_buffer.append(frame)
-                silence_counter = 0
-                is_speaking = True
-            else:
-                if is_speaking:
-                    silence_counter += 1
+                frame_bytes = frame.tobytes()
+                try:
+                    is_speech = vad.is_speech(frame_bytes, SAMPLE_RATE)
+                except Exception:
+                    is_speech = False
+
+                if is_speech:
                     speech_buffer.append(frame)
+                    silence_counter = 0
+                    is_speaking = True
+                else:
+                    if is_speaking:
+                        silence_counter += 1
+                        speech_buffer.append(frame)
 
-                    if silence_counter >= pause_frames:
-                        print("\n[Распознавание (не выключать скрипт)...]")
-                        recognize_and_write(model, speech_buffer, output_file)
-                        speech_buffer = []
-                        silence_counter = 0
-                        is_speaking = False
-                        print("\nСлушаю...")
+                        if silence_counter >= pause_frames:
+                            break  # Кусок закончен
+
+            # Распознаём и пишем
+            print("\n[Распознавание...]")
+            recognize_and_write(model, speech_buffer, output_file)
+
+            # Ждём Enter
+            print("\n[Правь текст в файле. Нажми Enter, чтобы продолжить...]")
+            input()
+
+            # Очищаем очередь (то, что накопилось, пока правил)
+            while not audio_queue.empty():
+                try:
+                    audio_queue.get_nowait()
+                except queue.Empty:
+                    break
+
+            print("\nСлушаю... Говорите.")
 
 
 if __name__ == "__main__":
