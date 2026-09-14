@@ -1,8 +1,10 @@
-# понимает форматы .ogg (телега) / .mp3
 import whisper
 import time
 from datetime import datetime
 import os
+
+# понимает форматы .ogg (телега) / .mp3
+# транскрибация всех файлов из папки audio_folder = "RECORD" - каждый файл с одну новую строку с «*** »
 
 def get_log_time():
     return datetime.now().strftime('%H:%M:%S')

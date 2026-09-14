@@ -5,14 +5,19 @@ import whisper
 import queue
 import sys
 import os
+import time
 from datetime import datetime
 import re
 import soundfile as sf
 
+# транскрибация сразу с микрофона после паузы в PAUSE_SECONDS (3 сек)
+# для следующей записи нажать ентер в консоли, поставив курсор в конец после «[Нажми Enter — старт записи]»
+
+
 # ========== НАСТРОЙКИ ==========
 MODEL_NAME = "large-v3"
 LANGUAGE = "ru"
-PAUSE_SECONDS = 3.0
+PAUSE_SECONDS = 3.0  # пауза, после которой микрофон выключается и отправляет файл на расшифровку
 SAMPLE_RATE = 16000
 CHANNELS = 1
 FRAME_DURATION_MS = 30
@@ -62,6 +67,43 @@ def recognize_and_write(model, speech_buffer, output_file):
         print("  (пусто)")
 
 
+def record_until_pause(audio_queue, vad, pause_frames):
+    print("● Запись. Говори. Остановится сама после паузы.")
+    speech_buffer = []
+    silence_counter = 0
+    is_speaking = False
+    no_speech_timeout = time.time() + 10.0
+
+    while True:
+        try:
+            frame = audio_queue.get(timeout=1.0)
+        except queue.Empty:
+            continue
+
+        frame_bytes = frame.tobytes()
+        try:
+            is_speech = vad.is_speech(frame_bytes, SAMPLE_RATE)
+        except Exception:
+            is_speech = False
+
+        if is_speech:
+            speech_buffer.append(frame)
+            silence_counter = 0
+            is_speaking = True
+        else:
+            if is_speaking:
+                silence_counter += 1
+                speech_buffer.append(frame)
+                if silence_counter >= pause_frames:
+                    break
+            else:
+                if time.time() > no_speech_timeout:
+                    print("  (речь не обнаружена, отмена)")
+                    return []
+
+    return speech_buffer
+
+
 def main():
     output_file = create_output_file()
     print(f"Файл результатов: {output_file}")
@@ -75,7 +117,7 @@ def main():
 
     audio_queue = queue.Queue()
 
-    def audio_callback(indata, frames, time, status):
+    def audio_callback(indata, frames, time_info, status):
         if status:
             print(status, file=sys.stderr)
         audio_queue.put(indata.copy())
@@ -85,56 +127,29 @@ def main():
         dtype='int16', blocksize=frame_size, callback=audio_callback
     )
 
-    first_chunk = True
-
     with stream:
+        stream.stop()  # микрофон выключен
+
         while True:
-            # 1. Ждём Enter (кроме первого куска)
-            if not first_chunk:
-                print("\n[Правь текст в файле. Нажми Enter, чтобы продолжить...]")
-                input()
+            # Ждём просто Enter
+            input("\n[Нажми Enter — старт записи] ")
 
-            # 2. Очищаем очередь (всё, что накопилось, пока правил)
-            while not audio_queue.empty():
-                try:
-                    audio_queue.get_nowait()
-                except queue.Empty:
-                    break
+            # Включаем микрофон
+            stream.start()
 
-            # 3. Начинаем запись
-            print("\nСлушаю... Говорите.")
+            # Пишем до паузы
+            speech_buffer = record_until_pause(audio_queue, vad, pause_frames)
 
-            speech_buffer = []
-            silence_counter = 0
-            is_speaking = False
+            # Выключаем микрофон
+            stream.stop()
+            print("■ Запись остановлена.")
 
-            # Записываем кусок
-            while True:
-                try:
-                    frame = audio_queue.get(timeout=1.0)
-                except queue.Empty:
-                    continue
-                frame_bytes = frame.tobytes()
-                try:
-                    is_speech = vad.is_speech(frame_bytes, SAMPLE_RATE)
-                except Exception:
-                    is_speech = False
-                if is_speech:
-                    speech_buffer.append(frame)
-                    silence_counter = 0
-                    is_speaking = True
-                else:
-                    if is_speaking:
-                        silence_counter += 1
-                        speech_buffer.append(frame)
-                        if silence_counter >= pause_frames:
-                            break
-
-            # 4. Распознаём и пишем
-            print("\n[Распознавание...]")
-            recognize_and_write(model, speech_buffer, output_file)
-
-            first_chunk = False
+            # Распознаём и пишем в файл
+            if speech_buffer:
+                print("[Распознавание...]")
+                recognize_and_write(model, speech_buffer, output_file)
+            else:
+                print("  (ничего не записано)")
 
 
 if __name__ == "__main__":

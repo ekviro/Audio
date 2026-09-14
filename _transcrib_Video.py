@@ -5,6 +5,7 @@ import os
 import subprocess
 import tempfile
 
+# транскрибация всех аудио из видеофайлов папки video_folder = "VIDEO"
 def get_log_time():
     return datetime.now().strftime('%H:%M:%S')
 
